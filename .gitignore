@@ -5,3 +5,4 @@
 !*.py
 !*.ui
 !**/requirements.txt
+!**/README.md
