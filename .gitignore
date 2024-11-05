@@ -1,0 +1,7 @@
+*
+
+!.gitignore
+!capture_lands
+!*.py
+!*.ui
+!**/requirements.txt
