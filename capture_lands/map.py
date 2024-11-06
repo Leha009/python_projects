@@ -1,5 +1,6 @@
 from __future__ import annotations
 from collections import namedtuple
+import random
 
 class Cell():
     _max_capacity = 0
@@ -222,7 +223,13 @@ class Map():
             width (int): The width of the map.
             height (int): The height of the map.
         """
-        self._cells = [[Cell(10) for _ in range(width)] for _ in range(height)]
+        self._cells = [
+            [
+                Cell(random.randint(10, 1000), ticks_to_fill=random.randint(0, 5))
+                for _ in range(width)
+            ]
+            for _ in range(height)
+        ]
 
     def get_cell(self, coords: CellCoords) -> Cell:
         """

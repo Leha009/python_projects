@@ -16,7 +16,7 @@ from PyQt6.QtCore import Qt, QEvent
 from PyQt6 import uic
 from PyQt6.QtGui import QColor
 
-from handler import GameHandler
+from handler import GameHandler, GameStatus
 from map import CellCoords, Map
 
 TIME_CLICK_TIMEOUT = 2
@@ -43,6 +43,7 @@ class MapGUI(QMainWindow):
         self.horizontalLayout: QHBoxLayout  # Горизонтальная сетка
         self.horizontalSpacer: QSpacerItem  # Горизонтальный спейсер
         self.l_ticks: QLabel  # Метка для отображения количества тиков
+        self.l_alive_players: QLabel # Метка для отображения количества живых игроков
         self.player_color: QPushButton  # Метка для отображения цвета игрока
         self.map: QTableWidget  # Таблица для отображения карты
         self.pause_button: QPushButton  # Кнопка для паузы
@@ -50,7 +51,7 @@ class MapGUI(QMainWindow):
         self.centralWidget().setLayout(self.gridLayout)
 
         self.game_handler = GameHandler(
-            map=Map(10, 10),
+            map=Map(20, 20),
             num_of_players=num_of_players,
             num_of_bots=num_of_bots
         )
@@ -59,6 +60,7 @@ class MapGUI(QMainWindow):
         self.init_colors(total_players=num_of_players)
         self.init_map()
         self.update()
+        self.on_eliminated(0)
 
         self._source_clicked = None
         self._target_clicked = None
@@ -67,6 +69,8 @@ class MapGUI(QMainWindow):
     def connect_signals(self) -> None:
         self.pause_button.clicked.connect(self.start_stop)
         self.game_handler.tick.connect(self.update)
+        self.game_handler.game_state_changed.connect(self.on_game_state_changed)
+        self.game_handler.eliminated.connect(self.on_eliminated)
 
         self.map.viewport().installEventFilter(self)
 
@@ -192,17 +196,45 @@ class MapGUI(QMainWindow):
         """
         if self.game_handler.is_stopped():
             self.game_handler.resume()
-            self.pause_button.setText("Pause")
         else:
-            self.game_handler.stop()
+            self.game_handler.pause()
+
+    def on_game_state_changed(self, state: GameStatus) -> None:
+        """
+        Updates the pause button text and state based on the game state.
+
+        When the game state changes, this method is called by the game handler
+        to update the pause button. The button's text is changed to reflect the
+        current state, and the button is disabled if the game is over.
+        """
+        if state == GameStatus.END:
+            self.pause_button.setText("Game END")
+            self.pause_button.setEnabled(False)
+        elif state == GameStatus.ACTIVE:
+            self.pause_button.setText("Pause")
+        elif state == GameStatus.PAUSED:
             self.pause_button.setText("Resume")
+
+    def on_eliminated(self, player_id: int) -> None:
+        """
+        Updates the label displaying the number of alive players when a player is eliminated.
+
+        This method is triggered by the `eliminated` signal from the game handler,
+        indicating that a player has been eliminated from the game. It updates the
+        label `l_alive_players` to reflect the new count of players still alive.
+
+        Args:
+            player_id (int): The ID of the player that has been eliminated.
+        """
+        self.l_alive_players.setText(
+            f"Живых игроков: {self.game_handler.alive_players_count()}")
 
 def main() -> None:
     """
     Main function to start the application.
     """
     app = QApplication([])
-    map_gui = MapGUI(3, 3)
+    map_gui = MapGUI(7, 7)
     map_gui.show()
     app.exec()
 
