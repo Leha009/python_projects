@@ -66,6 +66,14 @@ class MapGUI(QMainWindow):
         self.map.viewport().installEventFilter(self)
 
     def init_colors(self, players: int) -> None:
+        """
+        Initializes player colors by randomly generating a list of QColor objects,
+        each representing a unique color for a player. The player's color is also set
+        as the background color of the player_color QPushButton.
+
+        Args:
+            players (int): The number of players, determining how many colors to generate.
+        """
         self._players_colors = list()
         for _ in range(players):
             self._players_colors.append(QColor(
@@ -79,6 +87,12 @@ class MapGUI(QMainWindow):
             f"background-color: {self._players_colors[PLAYER_ID - 1].name()};")
 
     def init_map(self) -> None:
+        """
+        Initializes the map table by setting the row and column counts to the height
+        and width of the game map, respectively. Then, for each cell in the map, a
+        QTableWidgetItem is created with the string representation of the cell and
+        set as the item at the corresponding row and column in the table.
+        """
         self.map.setRowCount(self.game_handler.get_map().height)
         self.map.setColumnCount(self.game_handler.get_map().width)
         for y in range(self.game_handler.get_map().height):
@@ -88,6 +102,15 @@ class MapGUI(QMainWindow):
                 self.map.setItem(y, x, item)
 
     def update(self) -> None:
+        """
+        Update the GUI to reflect the current state of the game.
+
+        This method retrieves the current number of ticks from the game handler and updates
+        the tick label. It iterates through each cell in the game map, updating the text
+        and background color of each cell in the map table according to the cell's attributes.
+        If a cell has a player owner, its background color is set based on the player's color
+        and the cell's capacity, with the alpha channel adjusted for visibility.
+        """
         ticks = self.game_handler.get_ticks()
         self.l_ticks.setText(f"ticks: {ticks}")
 
@@ -103,6 +126,25 @@ class MapGUI(QMainWindow):
                     self.map.item(y, x).setBackground(color)
 
     def eventFilter(self, source, event: QEvent) -> bool:
+        """
+        Filters and handles mouse button press events on the map widget.
+
+        This method captures mouse button press events to determine source and target
+        cells for moving troops in the game. When the left mouse button is pressed, it
+        sets the source cell. If a target cell is already selected, it triggers the
+        move_troops action between the target and source. When the right mouse button
+        is pressed, it sets the target cell and performs the move if a source is
+        already selected. The method also enforces a timeout to reset source and target
+        selections if the clicks are too far apart in time.
+
+        Args:
+            source: The object that generated the event.
+            event (QEvent): The event being filtered.
+
+        Returns:
+            bool: True if the event should be filtered out, otherwise passes the
+            event to the base class implementation.
+        """
         if event.type() == QEvent.Type.MouseButtonPress:
             now = time.time()
             if now - self._time_on_click > TIME_CLICK_TIMEOUT:
@@ -135,6 +177,14 @@ class MapGUI(QMainWindow):
 
     # signals
     def start_stop(self) -> None:
+        """
+        Toggles the game state between paused and running.
+
+        This method is connected to the pause button's clicked signal. When the
+        button is clicked, it checks the current state of the game handler and
+        either resumes or stops the game. The button's text is also updated to
+        reflect the current state.
+        """
         if self.game_handler.is_stopped():
             self.game_handler.resume()
             self.pause_button.setText("Pause")
