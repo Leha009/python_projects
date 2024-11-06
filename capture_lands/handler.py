@@ -1,15 +1,21 @@
 import random
 from PyQt6.QtCore import pyqtSignal, QTimer, QObject
 
-from bot import Bot
+from bot import Bot, RandomCaptureBot
 from map import CellCoords, Map
 
 TICK_MS = 1000
 
 class GameHandler(QObject):
+    # signals
     tick = pyqtSignal()
+    # who, what captured
+    captured = pyqtSignal(int, CellCoords)
+    # who, source, target, how many
+    troops_moved = pyqtSignal(int, CellCoords, CellCoords, int)
+
+    # tick timer
     _tick_timer: QTimer
-    _stopped: bool
 
     _players: list[int]
     _map: Map
@@ -24,7 +30,7 @@ class GameHandler(QObject):
         self._map = map
         self._ticks = 0
         self._players = [i for i in range(1, num_of_players+1)]
-        self._bots = [Bot() for _ in range(num_of_players-1)]
+        self._bots = [RandomCaptureBot(map) for _ in range(num_of_players-1)]
 
         self.init_startup()
 
@@ -32,7 +38,6 @@ class GameHandler(QObject):
         self._tick_timer.setInterval(TICK_MS)
         self._tick_timer.setSingleShot(False)
         self._tick_timer.timeout.connect(self.next_tick)
-        self._stopped = True
 
     def init_startup(self) -> None:
         for player in self._players:
@@ -67,6 +72,9 @@ class GameHandler(QObject):
         if cell_target.player_owner == cell_source.player_owner:
             cell_target.add(source_troops)
             cell_source.remove(source_troops)
+            self.troops_moved.emit(
+                cell_source.player_owner, source_coords, target_coords, source_troops
+            )
             return
 
         target_troops = cell_target.current_capacity
@@ -74,8 +82,12 @@ class GameHandler(QObject):
         if target_troops < source_troops:
             cell_target.add(source_troops - target_troops)
             cell_target.player_owner = cell_source.player_owner
+            self.captured.emit(cell_target.player_owner, target_coords)
 
         cell_source.remove(source_troops)
+        self.troops_moved.emit(
+            cell_source.player_owner, source_coords, target_coords, source_troops
+        )
 
     def next_tick(self) -> None:
         self._ticks += 1
@@ -90,12 +102,10 @@ class GameHandler(QObject):
         return self._ticks
 
     def is_stopped(self) -> bool:
-        return self._stopped
+        return not self._tick_timer.isActive()
 
     def stop(self) -> None:
         self._tick_timer.stop()
-        self._stopped = True
 
     def resume(self) -> None:
         self._tick_timer.start()
-        self._stopped = False

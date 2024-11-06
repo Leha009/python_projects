@@ -96,9 +96,11 @@ class MapGUI(QMainWindow):
                 cell = self.game_handler.get_map().get_cell(CellCoords(x, y))
                 self.map.item(y, x).setText(str(cell))
                 if cell.player_owner:
-                    self.map.item(y, x).setBackground(
-                        self._players_colors[cell.player_owner - 1]
-                    )
+                    alpha = max(cell.current_capacity * 255 // cell.max_capacity, 70)
+                    alpha = min(alpha, 255)
+                    color: QColor = self._players_colors[cell.player_owner - 1]
+                    color.setAlpha(alpha)
+                    self.map.item(y, x).setBackground(color)
 
     def eventFilter(self, source, event: QEvent) -> bool:
         if event.type() == QEvent.Type.MouseButtonPress:
