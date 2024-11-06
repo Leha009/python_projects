@@ -244,6 +244,18 @@ class Map():
 
         return self._cells[coords.y][coords.x]
 
+    def is_cell_valid(self, coords: CellCoords) -> bool:
+        """
+        Checks if the cell coordinates are within the map's bounds.
+
+        Args:
+            coords (CellCoords): The coordinates of the cell to check.
+
+        Returns:
+            bool: True if the cell is within the map's bounds, False otherwise.
+        """
+        return 0 <= coords.x < self.width and 0 <= coords.y < self.height
+
     @property
     def height(self) -> int:
         """

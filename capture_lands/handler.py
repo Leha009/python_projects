@@ -1,7 +1,6 @@
 import random
 from PyQt6.QtCore import pyqtSignal, QTimer, QObject
 
-from bot import Bot, RandomCaptureBot
 from map import CellCoords, Map
 
 TICK_MS = 1000
@@ -20,9 +19,9 @@ class GameHandler(QObject):
     _players: list[int]
     _map: Map
     _ticks: int
-    _bots: list[Bot]
+    _bots: list
 
-    def __init__(self, map: Map, num_of_players: int) -> None:
+    def __init__(self, map: Map, num_of_players: int, num_of_bots: int) -> None:
         """
         Initializes the GameHandler with the specified map and number of players.
 
@@ -32,11 +31,18 @@ class GameHandler(QObject):
 
         Sets up players and bots, initializes the game state, and configures the tick timer.
         """
+        from bot import RandomCaptureBot
+        if num_of_bots > num_of_players:
+            raise ValueError("Cannot have more bots than players.")
+
         super().__init__()
         self._map = map
         self._ticks = 0
         self._players = [i for i in range(1, num_of_players+1)]
-        self._bots = [RandomCaptureBot(map) for _ in range(num_of_players-1)]
+        self._bots = [
+            RandomCaptureBot(bot_id, self)
+            for bot_id in range(num_of_players-num_of_bots+1, num_of_players+1)
+        ]
 
         self.init_startup()
 
@@ -58,6 +64,7 @@ class GameHandler(QObject):
             cell = self._map.get_cell(CellCoords(x, y))
             cell.player_owner = player
             cell.ticks_to_fill = 0
+            self.captured.emit(player, CellCoords(x, y))
 
     def get_map(self) -> Map:
         """

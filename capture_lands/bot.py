@@ -1,11 +1,14 @@
 from abc import ABC, abstractmethod
+import random
 from handler import GameHandler
 from map import CellCoords
 
 class Bot(ABC):
     _game_handler: GameHandler
+    _id: int
 
-    def __init__(self, handler: GameHandler) -> None:
+    def __init__(self, bot_id: int, handler: GameHandler) -> None:
+        self._id = bot_id
         self._game_handler = handler
         self._game_handler.tick.connect(self.tick)
         self._game_handler.troops_moved.connect(self.on_troops_moved)
@@ -46,5 +49,38 @@ class Bot(ABC):
         """
 
 class RandomCaptureBot(Bot):
+
+    def __init__(self, bot_id: int, handler: GameHandler) -> None:
+        super().__init__(bot_id, handler)
+        self._my_cells: list[CellCoords] = list()
+
     def tick(self) -> None:
+        if len(self._my_cells) == 0:
+            return
+
+        cell_coords: CellCoords = random.choice(self._my_cells)
+        cell = self._game_handler.get_map().get_cell(cell_coords)
+        if cell.current_capacity == 0:
+            return
+
+        dx, dy = random.choice([(1, 0), (-1, 0), (0, 1), (0, -1)])
+        target_coords = CellCoords(cell_coords.x + dx, cell_coords.y + dy)
+        if not self._game_handler.get_map().is_cell_valid(target_coords):
+            return
+
+        self._game_handler.move_troops(self._id, target_coords, cell_coords)
+
+    def on_captured(self, player_id: int, cell_coords: CellCoords) -> None:
+        if cell_coords in self._my_cells:
+            self._my_cells.remove(cell_coords)
+        elif player_id == self._id:
+            self._my_cells.append(cell_coords)
+
+    def on_troops_moved(
+        self,
+        player_id: int,
+        from_cell: CellCoords,
+        to_cell: CellCoords,
+        num_of_troops: int
+    ) -> None:
         pass

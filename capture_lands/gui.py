@@ -29,7 +29,7 @@ class MapGUI(QMainWindow):
     _target_clicked: CellCoords
     _time_on_click: int
 
-    def __init__(self, players: int = 2) -> None:
+    def __init__(self, num_of_players: int, num_of_bots: int) -> None:
         """
         Initialize the user interface from a .ui file.
         """
@@ -49,9 +49,14 @@ class MapGUI(QMainWindow):
 
         self.centralWidget().setLayout(self.gridLayout)
 
-        self.game_handler = GameHandler(Map(10, 10), players)
+        self.game_handler = GameHandler(
+            map=Map(10, 10),
+            num_of_players=num_of_players,
+            num_of_bots=num_of_bots
+        )
+
         self.connect_signals()
-        self.init_colors(players=players)
+        self.init_colors(total_players=num_of_players)
         self.init_map()
         self.update()
 
@@ -65,17 +70,17 @@ class MapGUI(QMainWindow):
 
         self.map.viewport().installEventFilter(self)
 
-    def init_colors(self, players: int) -> None:
+    def init_colors(self, total_players: int) -> None:
         """
         Initializes player colors by randomly generating a list of QColor objects,
         each representing a unique color for a player. The player's color is also set
         as the background color of the player_color QPushButton.
 
         Args:
-            players (int): The number of players, determining how many colors to generate.
+            total_players (int): The number of players, determining how many colors to generate.
         """
         self._players_colors = list()
-        for _ in range(players):
+        for _ in range(total_players):
             self._players_colors.append(QColor(
                 random.randint(0, 255),
                 random.randint(0, 255),
@@ -197,7 +202,7 @@ def main() -> None:
     Main function to start the application.
     """
     app = QApplication([])
-    map_gui = MapGUI()
+    map_gui = MapGUI(3, 3)
     map_gui.show()
     app.exec()
 
