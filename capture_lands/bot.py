@@ -156,3 +156,48 @@ class AggressiveBot(Bot):
         num_of_troops: int
     ) -> None:
         pass
+
+class AggressiveAllAdjacentBot(Bot):
+    def __init__(self, bot_id: int, handler: GameHandler) -> None:
+        super().__init__(bot_id, handler)
+        self._my_cells: list[CellCoords] = list()
+
+    def tick(self) -> None:
+        for cell_coords in self._my_cells:
+            cell = self._game_handler.get_map().get_cell(cell_coords)
+            if cell.current_capacity == 0:
+                continue
+
+            for dx, dy in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                target_coords = CellCoords(cell_coords.x + dx, cell_coords.y + dy)
+                if not self._game_handler.get_map().is_cell_valid(target_coords):
+                    continue
+
+                target_cell = self._game_handler.get_map().get_cell(target_coords)
+                if target_cell.player_owner != self._id and cell.current_capacity > target_cell.current_capacity:
+                    neighbour_cells = []
+                    for dx2, dy2 in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+                        neighbour_coords = CellCoords(target_coords.x + dx2, target_coords.y + dy2)
+                        if self._game_handler.get_map().is_cell_valid(neighbour_coords):
+                            neighbour_cell = self._game_handler.get_map().get_cell(neighbour_coords)
+                            if neighbour_cell.player_owner == self._id:
+                                neighbour_cells.append(neighbour_coords)
+
+                    if len(neighbour_cells) > 0:
+                        for neighbour_coords in neighbour_cells:
+                            self._game_handler.move_troops(self._id, target_coords, neighbour_coords)
+
+    def on_captured(self, player_id: int, cell_coords: CellCoords) -> None:
+        if cell_coords in self._my_cells:
+            self._my_cells.remove(cell_coords)
+        elif player_id == self._id:
+            self._my_cells.append(cell_coords)
+
+    def on_troops_moved(
+        self,
+        player_id: int,
+        from_cell: CellCoords,
+        to_cell: CellCoords,
+        num_of_troops: int
+    ) -> None:
+        pass

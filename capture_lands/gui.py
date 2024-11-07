@@ -29,7 +29,7 @@ class MapGUI(QMainWindow):
     _target_clicked: CellCoords
     _time_on_click: int
 
-    def __init__(self, num_of_players: int, num_of_bots: int) -> None:
+    def __init__(self, map_width: int, map_height: int, num_of_players: int, num_of_bots: int) -> None:
         """
         Initialize the user interface from a .ui file.
         """
@@ -51,7 +51,7 @@ class MapGUI(QMainWindow):
         self.centralWidget().setLayout(self.gridLayout)
 
         self.game_handler = GameHandler(
-            map=Map(15, 15),
+            map=Map(map_width, map_height),
             num_of_players=num_of_players,
             num_of_bots=num_of_bots
         )
@@ -234,7 +234,12 @@ def main() -> None:
     Main function to start the application.
     """
     app = QApplication([])
-    map_gui = MapGUI(7, 7)
+    map_gui = MapGUI(
+        map_width=7,
+        map_height=7,
+        num_of_players=4,
+        num_of_bots=4
+    )
     map_gui.show()
     app.exec()
 

@@ -4,7 +4,7 @@ from PyQt6.QtCore import pyqtSignal, QTimer, QObject
 
 from map import CellCoords, Map
 
-TICK_MS = 1
+TICK_MS = 1000
 
 class GameStatus(Enum):
     ACTIVE = 0
@@ -42,7 +42,7 @@ class GameHandler(QObject):
 
         Sets up players and bots, initializes the game state, and configures the tick timer.
         """
-        from bot import RandomCaptureBot, DefensiveBot, AggressiveBot
+        from bot import RandomCaptureBot, DefensiveBot, AggressiveBot, AggressiveAllAdjacentBot
         if num_of_bots > num_of_players:
             raise ValueError("Cannot have more bots than players.")
 
@@ -51,7 +51,7 @@ class GameHandler(QObject):
         self._ticks = 0
         self._players_cells = {i: 0 for i in range(num_of_players+1)}
         self._players = [i for i in range(1, num_of_players+1)]
-        bots = [RandomCaptureBot, DefensiveBot, AggressiveBot]
+        bots = [AggressiveAllAdjacentBot]
         self._bots = [
             random.choice(bots)(bot_id, self)
             for bot_id in range(num_of_players-num_of_bots+1, num_of_players+1)
@@ -177,6 +177,8 @@ class GameHandler(QObject):
         #print(f"Player {player} eliminated.")
         print(f"Bot #{player} {self._bots[player-1].__class__.__name__} eliminated.")
         if len(self._players) < 2:
+            player = self._players[0]
+            print(f"Bot #{player} {self._bots[player-1].__class__.__name__} won.")
             self.end_game()
 
     def alive_players_count(self) -> int:
