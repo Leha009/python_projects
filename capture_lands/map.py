@@ -40,14 +40,15 @@ class Cell():
         Resets the ticks left for the next update to the ticks required to
         fill the cell.
         """
+        if self._current_capacity > self.max_capacity:
+            self._current_capacity -= 1
+
         if self._ticks_left > 0:
             self._ticks_left -= 1
             return
 
         if self._current_capacity < self.max_capacity:
             self._current_capacity += 1
-        elif self._current_capacity > self.max_capacity:
-            self._current_capacity -= 1
 
         self._ticks_left = self._ticks_to_fill
 
