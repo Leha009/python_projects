@@ -51,7 +51,7 @@ class MapGUI(QMainWindow):
         self.centralWidget().setLayout(self.gridLayout)
 
         self.game_handler = GameHandler(
-            map=Map(20, 20),
+            map=Map(15, 15),
             num_of_players=num_of_players,
             num_of_bots=num_of_bots
         )

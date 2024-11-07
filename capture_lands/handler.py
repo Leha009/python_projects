@@ -42,7 +42,7 @@ class GameHandler(QObject):
 
         Sets up players and bots, initializes the game state, and configures the tick timer.
         """
-        from bot import RandomCaptureBot
+        from bot import RandomCaptureBot, DefensiveBot, AggressiveBot
         if num_of_bots > num_of_players:
             raise ValueError("Cannot have more bots than players.")
 
@@ -51,8 +51,9 @@ class GameHandler(QObject):
         self._ticks = 0
         self._players_cells = {i: 0 for i in range(num_of_players+1)}
         self._players = [i for i in range(1, num_of_players+1)]
+        bots = [RandomCaptureBot, DefensiveBot, AggressiveBot]
         self._bots = [
-            RandomCaptureBot(bot_id, self)
+            random.choice(bots)(bot_id, self)
             for bot_id in range(num_of_players-num_of_bots+1, num_of_players+1)
         ]
 
@@ -173,7 +174,8 @@ class GameHandler(QObject):
         self._players.remove(player)
         self._players_cells.pop(player)
         self.eliminated.emit(player)
-        print(f"Player {player} eliminated.")
+        #print(f"Player {player} eliminated.")
+        print(f"Bot #{player} {self._bots[player-1].__class__.__name__} eliminated.")
         if len(self._players) < 2:
             self.end_game()
 
