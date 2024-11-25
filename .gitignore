@@ -2,6 +2,7 @@
 
 !.gitignore
 !capture_lands
+!simple_net_messenger
 !*.py
 !*.ui
 !**/requirements.txt
