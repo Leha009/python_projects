@@ -17,10 +17,10 @@ class ServerWidget(QWidget):
         self._port = port
         self._server.listen(self._addr, self._port)
         self._server.newConnection.connect(self.on_new_connection)
-        
+
         self._clients: set[QTcpSocket] = set()
         self._clients_names: dict[QTcpSocket, str] = dict()
-        
+
         self.ui = uic.loadUi("server.ui", self)
         self.log_action(f"Server started on {self._addr.toString()}:{self._port}\n")
 

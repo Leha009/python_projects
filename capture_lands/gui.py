@@ -1,4 +1,3 @@
-import random
 import time
 from PyQt6.QtWidgets import (
     QApplication,
@@ -16,20 +15,23 @@ from PyQt6.QtCore import Qt, QEvent
 from PyQt6 import uic
 from PyQt6.QtGui import QColor
 
-from handler import GameHandler, GameStatus
+from handler import GameStatus
 from map import CellCoords, Map
+
+from network.client import CaptureClient
 
 TIME_CLICK_TIMEOUT = 2
 PLAYER_ID = 1
 
 class MapGUI(QMainWindow):
-    game_handler: GameHandler
+    client: CaptureClient
+    _players_colors: dict[int, QColor]
 
     _source_clicked: CellCoords
     _target_clicked: CellCoords
     _time_on_click: int
 
-    def __init__(self, map_width: int, map_height: int, num_of_players: int, num_of_bots: int) -> None:
+    def __init__(self, client: CaptureClient, colors: dict[int, QColor]) -> None:
         """
         Initialize the user interface from a .ui file.
         """
@@ -50,14 +52,13 @@ class MapGUI(QMainWindow):
 
         self.centralWidget().setLayout(self.gridLayout)
 
-        self.game_handler = GameHandler(
-            map=Map(map_width, map_height),
-            num_of_players=num_of_players,
-            num_of_bots=num_of_bots
-        )
+        self.client = client
+        self.game_handler = client.get_game_handler()
+        self._players_colors = colors
+        player_color = self._players_colors[self.client.get_player_id()]
+        self.set_player_color(player_color)
 
         self.connect_signals()
-        self.init_colors(total_players=num_of_players)
         self.init_map()
         self.update()
         self.on_eliminated(0)
@@ -68,32 +69,15 @@ class MapGUI(QMainWindow):
 
     def connect_signals(self) -> None:
         self.pause_button.clicked.connect(self.start_stop)
-        self.game_handler.tick.connect(self.update)
+
+        """ self.game_handler.tick.connect(self.update)
         self.game_handler.game_state_changed.connect(self.on_game_state_changed)
-        self.game_handler.eliminated.connect(self.on_eliminated)
+        self.game_handler.eliminated.connect(self.on_eliminated) """
 
         self.map.viewport().installEventFilter(self)
 
-    def init_colors(self, total_players: int) -> None:
-        """
-        Initializes player colors by randomly generating a list of QColor objects,
-        each representing a unique color for a player. The player's color is also set
-        as the background color of the player_color QPushButton.
-
-        Args:
-            total_players (int): The number of players, determining how many colors to generate.
-        """
-        self._players_colors = list()
-        for _ in range(total_players):
-            self._players_colors.append(QColor(
-                random.randint(0, 255),
-                random.randint(0, 255),
-                random.randint(0, 255),
-                255
-            ))
-
-        self.player_color.setStyleSheet(
-            f"background-color: {self._players_colors[PLAYER_ID - 1].name()};")
+    def set_player_color(self, color: QColor) -> None:
+        self.player_color.setStyleSheet(f"background-color: {color.name()};")
 
     def init_map(self) -> None:
         """
@@ -102,11 +86,12 @@ class MapGUI(QMainWindow):
         QTableWidgetItem is created with the string representation of the cell and
         set as the item at the corresponding row and column in the table.
         """
-        self.map.setRowCount(self.game_handler.get_map().height)
-        self.map.setColumnCount(self.game_handler.get_map().width)
-        for y in range(self.game_handler.get_map().height):
-            for x in range(self.game_handler.get_map().width):
-                cell = self.game_handler.get_map().get_cell(CellCoords(x, y))
+        map: Map = self.game_handler.get_map()
+        self.map.setRowCount(map.height)
+        self.map.setColumnCount(map.width)
+        for y in range(map.height):
+            for x in range(map.width):
+                cell = map.get_cell(CellCoords(x, y))
                 item = QTableWidgetItem(str(cell))
                 self.map.setItem(y, x, item)
 
@@ -123,8 +108,10 @@ class MapGUI(QMainWindow):
         ticks = self.game_handler.get_ticks()
         self.l_ticks.setText(f"ticks: {ticks}")
 
-        for y in range(self.game_handler.get_map().height):
-            for x in range(self.game_handler.get_map().width):
+        map: Map = self.game_handler.get_map()
+
+        for y in range(map.height):
+            for x in range(map.width):
                 cell = self.game_handler.get_map().get_cell(CellCoords(x, y))
                 self.map.item(y, x).setText(str(cell))
                 if cell.player_owner:

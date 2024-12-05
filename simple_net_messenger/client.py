@@ -5,17 +5,17 @@ from PyQt6 import uic
 class MessengerWidget(QWidget):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        
+
         self._socket = QTcpSocket(self)
-        
+
         self.ui = uic.loadUi("client.ui", self)
         self.__connect_signals()
-        
+
     def __connect_signals(self) -> None:
         self.ui._pb_connect.clicked.connect(self.on_pb_connect_clicked)
-        
+
         self.ui._pb_send_msg.clicked.connect(self.on_send_msg_clicked)
-        
+
         self._socket.connected.connect(self.on_connected)
         self._socket.disconnected.connect(self.on_disconnected)
         self._socket.readyRead.connect(self.on_data_received)
