@@ -4,6 +4,9 @@
 !capture_lands
 !capture_lands/network
 !simple_net_messenger
+!app_with_update_server
+!app_with_update_server/app
+!app_with_update_server/update_server
 !*.py
 !*.ui
 !**/requirements.txt
