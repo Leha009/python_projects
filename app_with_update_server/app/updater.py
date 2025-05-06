@@ -1,5 +1,7 @@
 import os
+import subprocess
 import shutil
+import sys
 import requests
 
 VERSION_FILE = "version.txt"
@@ -92,12 +94,14 @@ class Updater():
                         install_packages.append(line)
 
             if len(remove_packages):
-                remove_packages = " ".join(remove_packages)
-                os.system(f"pip uninstall -y {remove_packages}")
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "uninstall", "-y"] + remove_packages
+                )
 
             if len(install_packages):
-                install_packages = " ".join(install_packages)
-                os.system(f"pip install {install_packages}")
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install"] + install_packages
+                )
 
             os.remove(req_file)
 
