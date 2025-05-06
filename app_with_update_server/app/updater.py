@@ -110,7 +110,7 @@ class Updater():
     def updates_available(self) -> bool:
         current_version = self.get_current_version()
         last_version = self.get_last_version_from_server()
-        return current_version < last_version
+        return last_version is not None and current_version < last_version
 
     def __print(self, text: str) -> None:
         print("*"*80)
