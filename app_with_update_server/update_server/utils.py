@@ -9,15 +9,21 @@ def compare_version(version1: str, version2: str) -> int:
     if not version2.strip():
         return 1
 
-    v1 = list(map(int, version1.split('.')))
-    v2 = list(map(int, version2.split('.')))
+    v1 = version1.split('.')
+    v2 = version2.split('.')
 
     while len(v1) < len(v2):
-        v1.append(0)
+        v1.append('0')
     while len(v2) < len(v1):
-        v2.append(0)
+        v2.append('0')
 
     for a, b in zip(v1, v2):
+        while len(a) < len(b):
+                a += '0'
+        while len(b) < len(a):
+            b += '0'
+
+        a, b = int(a), int(b)
         if a < b:
             return -1
         if a > b:
