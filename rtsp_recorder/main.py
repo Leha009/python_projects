@@ -15,12 +15,13 @@ signal.signal(signal.SIGTERM, signal_handler)
 
 RTSP_URL = os.getenv("RTSP_URL")
 SAVE_FOLDER = os.getenv("SAVE_FOLDER", "./records/")
+TARGER_FPS = int(os.getenv("TARGET_FPS", 24))
 
 if not RTSP_URL.strip():
     raise ValueError("RTSP_URL is not set")
 
 CAMERA = cv2.VideoCapture(RTSP_URL)
-VIDEO_SAVER = VideoSaver(SAVE_FOLDER, fps=10, camera=CAMERA)
+VIDEO_SAVER = VideoSaver(SAVE_FOLDER, fps=24, camera=CAMERA)
 
 try:
     while RUNNING and CAMERA.isOpened():
