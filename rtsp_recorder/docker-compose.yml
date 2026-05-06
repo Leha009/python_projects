@@ -1,0 +1,13 @@
+version: '3'
+services:
+  app:
+    image: rtsp_recorder
+    container_name: rtsp_recorder
+    network_mode: host
+    restart: always
+    build: .
+    volumes:
+      - ./records/:/app/records/
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env

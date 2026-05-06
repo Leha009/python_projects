@@ -7,7 +7,11 @@
 !app_with_update_server
 !app_with_update_server/app
 !app_with_update_server/update_server
+!rtsp_recorder
 !*.py
 !*.ui
 !**/requirements.txt
 !**/README.md
+!docker-compose.yml
+!Dockerfile
+!.env_example
