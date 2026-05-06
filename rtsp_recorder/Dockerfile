@@ -10,6 +10,7 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 WORKDIR /app
-COPY . /app
+COPY .env /app/
+COPY ./*.py /app/
 
 CMD ["python", "main.py"]

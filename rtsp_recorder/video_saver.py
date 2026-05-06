@@ -16,6 +16,7 @@ class VideoSaver:
     ) -> None:
         self.save_folder = save_folder
         self._writer: cv2.VideoWriter = None
+        self.current_file_name = None
         self.codec = cv2.VideoWriter.fourcc(*"mp4v")
 
         if camera is not None:
